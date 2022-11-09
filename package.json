@@ -1,0 +1,78 @@
+{
+  "name": "mongoose-better-schemas",
+  "version": "0.0.1",
+  "description": "Streamline TypeScript schema definitions",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/types/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/types/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "types": "./dist/cjs/types/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "test": "jest --runInBand",
+    "lint": "eslint ./src/**/*.ts",
+    "clean": "rm -rf ./dist",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p ./tsconfig.esm.json",
+    "build:cjs": "tsc -p ./tsconfig.cjs.json",
+    "semantic-release": "semantic-release",
+    "prepack": "npm run build"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cboar/mongoose-better-schemas.git"
+  },
+  "keywords": [
+    "mongoose",
+    "schemas",
+    "select",
+    "populate",
+    "projection",
+    "plugin",
+    "typescript",
+    "ts"
+  ],
+  "author": "Joel Nuesch",
+  "license": "MIT",
+  "devDependencies": {
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
+    "@tsconfig/node16-strictest": "^1.0.3",
+    "@types/jest": "^29.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.36.1",
+    "@typescript-eslint/parser": "^5.36.1",
+    "eslint": "^8.23.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "husky": "^8.0.1",
+    "jest": "^29.2.1",
+    "semantic-release": "^19.0.5",
+    "ts-jest": "^29.0.3",
+    "ts-toolbelt": "^9.6.0",
+    "typescript": "^4.8.2"
+  },
+  "dependencies": {
+    "mongoose": "^6.5.4"
+  }
+}
