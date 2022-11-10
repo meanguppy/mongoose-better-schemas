@@ -9,7 +9,7 @@
     "module": "ESNext",
     "moduleResolution": "NodeNext",
     "outDir": "dist/esm",
-    "declarationDir": "dist/esm/types"
+    "declarationDir": "dist/types"
   },
   "include": [
     "src/**/*.ts"

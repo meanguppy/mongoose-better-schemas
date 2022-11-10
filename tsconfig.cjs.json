@@ -9,7 +9,7 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "dist/cjs",
-    "declarationDir": "dist/cjs/types"
+    "declarationDir": "dist/types"
   },
   "include": [
     "src/**/*.ts"
