@@ -1,6 +1,6 @@
 {
   "name": "mongoose-better-schemas",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Streamline TypeScript schema definitions",
   "exports": {
     ".": {
