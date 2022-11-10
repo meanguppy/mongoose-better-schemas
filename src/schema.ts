@@ -2,26 +2,54 @@ import mongoose from 'mongoose';
 import type { F } from 'ts-toolbelt';
 import type {
   FilterQuery,
-  HydratedDocument,
+  Document,
   Model,
   Query,
   SchemaDefinition,
   SchemaOptions,
   Schema as MongooseSchema,
+  SortOrder,
 } from 'mongoose';
-import type { Projection, Schema } from './types/projection';
+import type {
+  Projection,
+  Schema,
+  SelectConfig,
+  PopulateConfig,
+} from './types/projection';
 
 type Defaults<T> = unknown extends T ? {} : T;
 
-function buildPopulateArray(populate: unknown) {
-  // TODO
-  return [];
+type PopulateItem = {
+  path: string,
+  select?: Record<string, 1 | 0>,
+  populate?: PopulateItem[],
+};
+
+type QueryOptions<S, P, L> = {
+  select?: F.Narrow<S>;
+  populate?: F.Narrow<P>;
+  lean?: F.Narrow<L>;
+  skip?: number;
+  limit?: number;
+  sort?: Record<string, SortOrder>;
+};
+
+function buildPopulateArray(populate: PopulateConfig): PopulateItem[] {
+  if (!populate || typeof populate !== 'object') return [];
+  return Object.entries(populate).flatMap(([name, val]) => {
+    if (val === 1) return { path: name };
+    if (val && typeof val === 'object') {
+      const { select = {}, populate: innerPopulate = {} } = val;
+      return { path: name, select, populate: buildPopulateArray(innerPopulate) };
+    }
+    return [];
+  });
 }
 
 export function defineSchema<T extends Schema>() {
   return function buildSchema<
     O extends SchemaOptions<'type', Projection<T>, unknown, unknown, unknown, unknown>,
-  >(input: SchemaDefinition<Projection<T>>, opts?: O) {
+  >(input: SchemaDefinition<Projection<T>>, schemaOpts?: O) {
     type FinalModel = Model<
       Projection<T>,
       Defaults<O['query']>,
@@ -29,36 +57,53 @@ export function defineSchema<T extends Schema>() {
       {} // forbid virtuals
     >;
 
-    function findProjected<S, P>(
-      this: FinalModel,
-      filter: FilterQuery<unknown>,
-      select?: F.Narrow<S>,
-      populate?: F.Narrow<P>,
+    type AsDoc<Doc> = Doc extends { _id?: infer U }
+      ? Document<unknown, Defaults<O['query']>, Doc> & { _id: U }
+      : Document<never, Defaults<O['query']>, Doc>;
+
+    type ResultType<S, P, L> =
+      [L] extends [true]
+        ? Projection<T, S, P>
+        : AsDoc<Projection<T, S, P>> & O['methods'];
+
+    function buildQuery(
+      query: Query<unknown, unknown>,
+      opts: QueryOptions<unknown, unknown, unknown>,
     ) {
-      const q = this.find(filter);
-      if (select) q.select(select);
-      if (populate) q.populate(buildPopulateArray(populate));
-      return q as unknown as Query<
-        HydratedDocument<Projection<T, S, P>, Defaults<O['methods']>>[],
-        Projection<T, S, P>,
-        Defaults<O['query']>
-      >;
+      const { select, populate, lean, skip, limit, sort } = opts;
+      if (select) query.select(select);
+      if (populate) query.populate(buildPopulateArray(populate));
+      if (lean) query.lean();
+      if (sort) query.sort(sort);
+      if (skip !== undefined) query.skip(skip);
+      if (limit !== undefined) query.limit(limit);
+      return query;
     }
 
-    function findOneProjected<S, P>(
+    function findProjected<
+      S extends SelectConfig,
+      P extends PopulateConfig,
+      L extends boolean,
+    >(
       this: FinalModel,
       filter: FilterQuery<unknown>,
-      select?: F.Narrow<S>,
-      populate?: F.Narrow<P>,
+      opts: QueryOptions<S, P, L> = {},
     ) {
-      const q = this.findOne(filter);
-      if (select) q.select(select);
-      if (populate) q.populate(buildPopulateArray(populate));
-      return q as unknown as Query<
-        HydratedDocument<Projection<T, S, P>, Defaults<O['methods']>> | null,
-        Projection<T, S, P>,
-        Defaults<O['query']>
-      >;
+      return buildQuery(this.find(filter), opts)
+        .exec() as Promise<ResultType<S, P, L>[]>;
+    }
+
+    function findOneProjected<
+      S extends SelectConfig,
+      P extends PopulateConfig,
+      L extends boolean,
+    >(
+      this: FinalModel,
+      filter: FilterQuery<unknown>,
+      opts: QueryOptions<S, P, L> = {},
+    ) {
+      return buildQuery(this.findOne(filter), opts)
+        .exec() as Promise<ResultType<S, P, L> | null>;
     }
 
     const projectionStatics = {
@@ -66,7 +111,13 @@ export function defineSchema<T extends Schema>() {
       findOneProjected,
     };
 
-    type FinalSchema = MongooseSchema<
+    return new mongoose.Schema(input as never, {
+      ...schemaOpts,
+      statics: {
+        ...(schemaOpts?.statics as Record<string, unknown> || {}),
+        ...projectionStatics,
+      },
+    }) as MongooseSchema<
       Projection<T>,
       FinalModel,
       Defaults<O['methods']>,
@@ -74,13 +125,5 @@ export function defineSchema<T extends Schema>() {
       {}, // forbid virtuals
       O['statics'] & typeof projectionStatics
     >;
-
-    return new mongoose.Schema(input as never, {
-      ...opts,
-      statics: {
-        ...(opts?.statics ?? {}),
-        ...projectionStatics,
-      },
-    }) as FinalSchema;
   };
 }

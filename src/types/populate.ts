@@ -1,7 +1,7 @@
 import type { Types } from 'mongoose';
 import type {
   Schema,
-  PopulateConfig,
+  PopulateInfo,
   Projection,
 } from './projection';
 
@@ -15,7 +15,7 @@ type AppendPath<Parent extends string, Child> =
 type ExpandProjection<T extends Schema, RefVal> =
   RefVal extends 1
     ? Projection<T, {}, {}> | null
-    : RefVal extends PopulateConfig<infer S, infer P, infer N>
+    : RefVal extends PopulateInfo<infer S, infer P, infer N>
       ? Projection<T, S, P> | (N extends false ? never : null)
       : never;
 
