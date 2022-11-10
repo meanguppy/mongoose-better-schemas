@@ -83,9 +83,9 @@ export function defineSchema<T extends Schema>() {
     }
 
     function findProjected<
-      S extends SelectConfig,
-      P extends PopulateConfig,
-      L extends boolean,
+      S extends SelectConfig = {},
+      P extends PopulateConfig = {},
+      L extends boolean = false,
     >(
       this: FinalModel,
       filter: FilterQuery<unknown>,
@@ -96,9 +96,9 @@ export function defineSchema<T extends Schema>() {
     }
 
     function findOneProjected<
-      S extends SelectConfig,
-      P extends PopulateConfig,
-      L extends boolean,
+      S extends SelectConfig = {},
+      P extends PopulateConfig = {},
+      L extends boolean = false,
     >(
       this: FinalModel,
       filter: FilterQuery<unknown>,
