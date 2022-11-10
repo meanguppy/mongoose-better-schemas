@@ -30,6 +30,13 @@ type MapPopulate<T, P, Path extends string> =
         ? { [K in keyof T]: MapPopulate<T[K], P, AppendPath<Path, K>> }
         : T;
 
-export type Populate<T extends Schema, P> = Omit<{
-  [K in keyof T]: K extends string ? MapPopulate<T[K], P, K> : never;
-}, '__schema'>;
+type ExcludeBrand<T, K extends keyof T> =
+  T[K] extends Schema['__schema']
+    ? never
+    : K;
+
+export type Populate<T extends Schema, P> = {
+  [K in keyof T as ExcludeBrand<T, K>]: K extends string
+    ? MapPopulate<T[K], P, K>
+    : never;
+};
