@@ -5,11 +5,6 @@ import type {
   Projection,
 } from './projection';
 
-type RemoveSchemaBrand<T> =
-  T extends Schema
-    ? Omit<T, '__schema'>
-    : T;
-
 type AppendPath<Parent extends string, Child> =
   Child extends string
     ? Parent extends ''
@@ -17,16 +12,11 @@ type AppendPath<Parent extends string, Child> =
       : `${Parent}.${Child}`
     : Parent;
 
-type NullIfNullable<N> =
-  N extends false
-    ? never
-    : null;
-
 type ExpandProjection<T extends Schema, RefVal> =
   RefVal extends 1
-    ? null | Projection<T, {}, {}> | null
+    ? Projection<T, {}, {}> | null
     : RefVal extends PopulateConfig<infer S, infer P, infer N>
-      ? NullIfNullable<N> | Projection<T, S, P>
+      ? Projection<T, S, P> | (N extends false ? never : null)
       : never;
 
 type MapPopulate<T, P, Path extends string> =
@@ -40,7 +30,6 @@ type MapPopulate<T, P, Path extends string> =
         ? { [K in keyof T]: MapPopulate<T[K], P, AppendPath<Path, K>> }
         : T;
 
-export type Populate<T extends Schema, P, Path extends string = ''> =
-  RemoveSchemaBrand<{
-    [K in keyof T]: MapPopulate<T[K], P, AppendPath<Path, K>>;
-  }>;
+export type Populate<T extends Schema, P> = Omit<{
+  [K in keyof T]: K extends string ? MapPopulate<T[K], P, K> : never;
+}, '__schema'>;

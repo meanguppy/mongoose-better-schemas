@@ -1,7 +1,7 @@
 import type { Populate } from './populate';
 import type { Select } from './select';
 
-export type Schema<T = unknown> = T & { readonly __schema: unique symbol };
+export type Schema<T = unknown> = T & { readonly __schema: number };
 export type SelectConfig = Record<string, 0 | 1>;
 export type PopulateConfig<S, P, N extends boolean> = 1 | {
   select?: S;
