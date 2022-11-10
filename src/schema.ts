@@ -57,9 +57,11 @@ export function defineSchema<T extends Schema>() {
       {} // forbid virtuals
     >;
 
-    type AsDoc<Doc> = Doc extends { _id?: infer U }
-      ? Document<unknown, Defaults<O['query']>, Doc> & { _id: U }
-      : Document<never, Defaults<O['query']>, Doc>;
+    type AsDoc<Doc> = Document<
+      Doc extends { _id?: infer U } ? U : never,
+      Defaults<O['query']>,
+      Doc
+    > & Doc;
 
     type ResultType<S, P, L> =
       [L] extends [true]
