@@ -1,6 +1,7 @@
 import type { O, String } from 'ts-toolbelt';
 import type { Types } from 'mongoose';
 
+/* Utility types */
 type TargetPaths<S> =
   keyof S extends string
     ? String.Split<keyof S, '.'>
@@ -19,6 +20,12 @@ type MergePathTuples<PS extends ReadonlyArray<string>> = ProjectionMap<{
   [K in PS[0]]: PS extends [K, ...infer Rest] ? Rest : never;
 }>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type OmitAll<T, K extends keyof any> = T extends any
+  ? Omit<T, K>
+  : never;
+
+/* Selection types */
 type SelectInclusive<T, S> =
   T extends ReadonlyArray<unknown>
     ? { [K in keyof T]: SelectInclusive<T[K], S> }
@@ -55,11 +62,12 @@ type SelectBranch<T extends object, S, P = {}> =
       ? SelectInclusive<T, MergePathTuples<TargetPaths<S & P>>>
       : never;
 
+/* Select entry point */
 export type Select<T extends object, S = {}, P = {}> =
   S extends { _id: 0 }
-    ? SelectBranch<Omit<T, '_id'>, Omit<S, '_id'>, P>
+    ? SelectBranch<OmitAll<T, '_id'>, OmitAll<S, '_id'>, P>
     : { _id: 1 } extends S
       ? {} extends S
         ? O.Merge<{ _id: Types.ObjectId }, T>
         : SelectBranch<O.Merge<{ _id: Types.ObjectId }, T>, { _id: 1 }, P>
-      : O.Merge<{ _id: Types.ObjectId }, SelectBranch<T, Omit<S, '_id'>, P>>;
+      : O.Merge<{ _id: Types.ObjectId }, SelectBranch<T, OmitAll<S, '_id'>, P>>;
