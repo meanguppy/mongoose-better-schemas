@@ -25,21 +25,22 @@ type PopulateItem = {
   populate?: PopulateItem[],
 };
 
-type QueryOptions<S, P, L> = {
+type QueryOptions<S, P, L, N> = {
   select?: F.Narrow<S>;
   populate?: F.Narrow<P>;
   lean?: F.Narrow<L>;
+  orFail?: F.Narrow<N>;
   skip?: number;
   limit?: number;
   sort?: Record<string, SortOrder>;
 };
 
-function buildPopulateArray(populate: PopulateConfig): PopulateItem[] {
+function buildPopulateArray(populate: PopulateConfig | undefined): PopulateItem[] {
   if (!populate || typeof populate !== 'object') return [];
   return Object.entries(populate).flatMap(([name, val]) => {
     if (val === 1) return { path: name };
     if (val && typeof val === 'object') {
-      const { select = {}, populate: innerPopulate = {} } = val;
+      const { select = {}, populate: innerPopulate } = val;
       return { path: name, select, populate: buildPopulateArray(innerPopulate) };
     }
     return [];
@@ -70,13 +71,14 @@ export function defineSchema<T extends Schema>() {
 
     function buildQuery(
       query: Query<unknown, unknown>,
-      opts: QueryOptions<unknown, unknown, unknown>,
+      opts: QueryOptions<unknown, unknown, unknown, unknown>,
     ) {
-      const { select, populate, lean, skip, limit, sort } = opts;
+      const { select, populate, orFail, lean, skip, limit, sort } = opts;
       if (select) query.select(select);
       if (populate) query.populate(buildPopulateArray(populate));
-      if (lean) query.lean();
       if (sort) query.sort(sort);
+      if (orFail === true) query.orFail();
+      if (lean === true) query.lean();
       if (skip !== undefined) query.skip(skip);
       if (limit !== undefined) query.limit(limit);
       return query;
@@ -86,26 +88,30 @@ export function defineSchema<T extends Schema>() {
       S extends SelectConfig = {},
       P extends PopulateConfig = {},
       L extends boolean = false,
+      N extends boolean = false,
     >(
       this: FinalModel,
       filter: FilterQuery<unknown>,
-      opts: QueryOptions<S, P, L> = {},
+      opts: QueryOptions<S, P, L, N> = {},
     ) {
-      return buildQuery(this.find(filter), opts)
-        .exec() as Promise<ResultType<S, P, L>[]>;
+      return buildQuery(this.find(filter), opts).exec() as (
+        Promise<ResultType<S, P, L>[]>
+      );
     }
 
     function findOneProjected<
       S extends SelectConfig = {},
       P extends PopulateConfig = {},
       L extends boolean = false,
+      N extends boolean = false,
     >(
       this: FinalModel,
       filter: FilterQuery<unknown>,
-      opts: QueryOptions<S, P, L> = {},
+      opts: QueryOptions<S, P, L, N> = {},
     ) {
-      return buildQuery(this.findOne(filter), opts)
-        .exec() as Promise<ResultType<S, P, L> | null>;
+      return buildQuery(this.findOne(filter), opts).exec() as (
+        Promise<ResultType<S, P, L> | (N extends false ? null : never)>
+      );
     }
 
     const projectionStatics = {
