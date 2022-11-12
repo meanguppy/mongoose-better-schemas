@@ -2,7 +2,7 @@ import type { Types } from 'mongoose';
 import type {
   Schema,
   Projection,
-} from './projection';
+} from '.';
 
 type AppendPath<Parent extends string, Child> =
   Child extends string

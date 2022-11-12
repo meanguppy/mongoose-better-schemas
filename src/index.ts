@@ -1,2 +1,6 @@
-export type { Schema as DefineSchema, Projection } from './types/projection';
+export type {
+  Schema as DefineSchema,
+  NoRef,
+  Projection,
+} from './types';
 export { defineSchema } from './schema';

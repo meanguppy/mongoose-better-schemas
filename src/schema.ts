@@ -15,7 +15,7 @@ import type {
   Schema,
   SelectConfig,
   PopulateConfig,
-} from './types/projection';
+} from './types';
 
 type Defaults<T> = unknown extends T ? {} : T;
 

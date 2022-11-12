@@ -3,6 +3,8 @@ import type { Select } from './select';
 
 export type Schema<T = unknown> = T & { readonly __schema: unique symbol };
 
+export type NoRef<T extends Schema> = T extends Schema<infer S> ? S : never;
+
 export type SelectConfig = {
   [path: string]: 0 | 1;
 };
