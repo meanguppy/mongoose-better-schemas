@@ -14,8 +14,12 @@ type AppendPath<Parent extends string, Child> =
 type ExpandProjection<T extends Schema, RefVal> =
   RefVal extends 1
     ? Projection<T, {}, {}> | null
-    : RefVal extends { select?: infer S, populate?: infer P, nullable?: infer N }
-      ? Projection<T, S, P> | (N extends false ? never : null)
+    : RefVal extends {
+      select?: infer S,
+      populate?: infer P,
+      nullable?: infer N,
+      [other: string]: unknown
+    } ? Projection<T, S, P> | (N extends false ? never : null)
       : never;
 
 type MapPopulate<T, P, Path extends string> =
