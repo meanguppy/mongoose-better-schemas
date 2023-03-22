@@ -15,7 +15,7 @@ export type PopulateInfo<
   N extends boolean,
 > =
   | 1
-  | { select?: S, populate?: P, nullable?: N };
+  | { select?: S, populate?: P, nullable?: N, [other: string]: unknown };
 
 export type PopulateConfig = {
   [path: string]: PopulateInfo<SelectConfig, PopulateConfig, boolean>;
