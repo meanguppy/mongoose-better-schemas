@@ -49,7 +49,7 @@ function buildPopulateArray(populate: PopulateConfig | undefined): PopulateItem[
 
 export function defineSchema<T extends Schema>() {
   return function buildSchema<
-    O extends SchemaOptions<'type', Projection<T>, unknown, unknown, unknown, unknown>,
+    O extends SchemaOptions<Projection<T>, unknown, unknown, unknown, unknown>,
   >(input: SchemaDefinition<Projection<T>>, schemaOpts?: O) {
     type FinalModel = Model<
       Projection<T>,
