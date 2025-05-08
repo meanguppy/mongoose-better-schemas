@@ -94,6 +94,7 @@ export function defineSchema<T extends Schema>() {
       filter: FilterQuery<unknown>,
       opts: QueryOptions<S, P, L, N> = {},
     ) {
+      // @ts-expect-error: necessary for now
       return buildQuery(this.find(filter), opts).exec() as (
         Promise<ResultType<S, P, L>[]>
       );
@@ -109,6 +110,7 @@ export function defineSchema<T extends Schema>() {
       filter: FilterQuery<unknown>,
       opts: QueryOptions<S, P, L, N> = {},
     ) {
+      // @ts-expect-error: necessary for now
       return buildQuery(this.findOne(filter), opts).exec() as (
         Promise<ResultType<S, P, L> | (N extends false ? null : never)>
       );
